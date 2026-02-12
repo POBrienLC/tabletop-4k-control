@@ -1,0 +1,121 @@
+# Safety Limits Configuration
+# This file defines safety limits and interlock conditions
+
+# Temperature Limits (in Kelvin)
+temperature_limits:
+  # Absolute limits - system will trigger emergency stop
+  absolute:
+    min_temperature: 1.5  # Below this is critical
+    max_temperature: 400.0  # Above this is critical
+    max_rate_cooldown: 10.0  # K/min
+    max_rate_warmup: 15.0  # K/min
+  
+  # Operational limits - system will pause/abort process
+  operational:
+    min_operating_temp: 3.5
+    max_operating_temp: 350.0
+    max_cooldown_rate: 8.0  # K/min
+    max_warmup_rate: 12.0  # K/min
+  
+  # Warning thresholds - generate warnings but continue
+  warning:
+    cooldown_rate: 6.0  # K/min
+    warmup_rate: 10.0  # K/min
+
+# Pressure Limits (in mbar)
+pressure_limits:
+  # Vacuum limits
+  vacuum:
+    max_for_cooldown: 1.0e-3  # Must be below this to start cooldown
+    critical_high: 1.0e-2  # Emergency stop above this
+    warning_high: 5.0e-3  # Warning above this
+    
+  # Helium supply limits
+  helium:
+    min_supply: 500.0  # Minimum supply pressure
+    max_supply: 2000.0  # Maximum safe supply
+    critical_high: 1800.0  # Emergency stop above this
+    warning_low: 600.0  # Warning if supply low
+
+# Valve Interlock Conditions
+valve_interlocks:
+  # Conditions that must be met for valve operations
+  isolation_valve:
+    open_conditions:
+      - "vacuum_pressure < 1e-2"
+      - "cooler_state == 'off'"
+    close_conditions: []  # Can always close
+    
+  needle_valve:
+    open_conditions:
+      - "vacuum_pressure < 1e-3"
+      - "isolation_valve == 'open'"
+    close_conditions: []
+
+# Cooler Interlock Conditions
+cooler_interlocks:
+  start_conditions:
+    - "vacuum_pressure < 1e-3"
+    - "water_flow_ok == true"
+    - "power_supply_ok == true"
+    - "all_valves_configured == true"
+  
+  stop_conditions: []  # Can always stop
+
+# Process Safety Limits
+process_safety:
+  cooldown:
+    min_start_temp: 280.0  # K - minimum temperature to start cooldown
+    max_start_pressure: 1.0e-3  # mbar
+    max_duration: 86400  # seconds (24 hours)
+    
+  warmup:
+    max_start_temp: 50.0  # K - maximum temperature to start warmup
+    min_cooldown_time: 3600  # seconds - minimum time before warmup allowed
+    max_duration: 43200  # seconds (12 hours)
+  
+  stabilization:
+    required_duration: 600  # seconds (10 minutes)
+    max_temp_variation: 0.5  # K - maximum variation during stabilization
+
+# Emergency Shutdown Triggers
+emergency_triggers:
+  temperature:
+    - condition: "any_temperature > 400"
+      action: "emergency_shutdown"
+      message: "Temperature exceeds safe limit"
+      
+    - condition: "any_temperature < 1.5"
+      action: "emergency_shutdown"
+      message: "Temperature below safe limit"
+  
+  pressure:
+    - condition: "vacuum_pressure > 1e-2"
+      action: "emergency_shutdown"
+      message: "Vacuum pressure too high"
+      
+    - condition: "helium_pressure > 1800"
+      action: "emergency_shutdown"
+      message: "Helium pressure critical"
+  
+  system:
+    - condition: "plc_disconnected"
+      action: "safe_mode"
+      message: "PLC connection lost"
+      
+    - condition: "power_failure"
+      action: "emergency_shutdown"
+      message: "Power failure detected"
+
+# Safety System Configuration
+safety_system:
+  check_interval: 0.5  # seconds - how often to check safety conditions
+  alarm_timeout: 30.0  # seconds - time before alarm escalates
+  interlock_override_allowed: false  # Allow safety override (use with caution!)
+  emergency_contact: "operator@example.com"
+  
+# Watchdog Configuration
+watchdog:
+  enabled: true
+  timeout: 10.0  # seconds - system must respond within this time
+  action_on_timeout: "emergency_shutdown"
