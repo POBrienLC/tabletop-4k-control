@@ -1,0 +1,201 @@
+# PLC Connection Configuration
+# Detailed configuration for Siemens PLC communication
+
+# Connection Parameters
+connection:
+  protocol: "S7"  # Siemens S7 protocol
+  ip_address: "192.168.1.100"
+  port: 102  # Default S7 port
+  rack: 0
+  slot: 1  # CPU slot
+  
+  # Timeouts (in seconds)
+  connect_timeout: 5.0
+  read_timeout: 2.0
+  write_timeout: 2.0
+  
+  # Retry settings
+  max_retries: 3
+  retry_delay: 1.0  # seconds between retries
+  
+  # Auto-reconnect
+  auto_reconnect: true
+  reconnect_interval: 5.0  # seconds
+
+# Memory Map Configuration
+# Maps system components to PLC data blocks and addresses
+
+memory_map:
+  # Digital Outputs (Valves, Cooler Control)
+  digital_outputs:
+    valve_isolation:
+      db: 1
+      byte: 0
+      bit: 0
+      description: "Isolation valve control"
+      
+    valve_needle:
+      db: 1
+      byte: 0
+      bit: 1
+      description: "Needle valve control"
+      
+    valve_relief:
+      db: 1
+      byte: 0
+      bit: 2
+      description: "Relief valve control"
+      
+    valve_bypass:
+      db: 1
+      byte: 0
+      bit: 3
+      description: "Bypass valve control"
+      
+    cooler_start:
+      db: 3
+      byte: 0
+      bit: 0
+      description: "GM cooler start command"
+      
+    alarm_reset:
+      db: 10
+      byte: 0
+      bit: 0
+      description: "Alarm reset"
+  
+  # Digital Inputs (Valve Feedback, Status)
+  digital_inputs:
+    valve_isolation_open:
+      db: 1
+      byte: 1
+      bit: 0
+      description: "Isolation valve open feedback"
+      
+    valve_isolation_closed:
+      db: 1
+      byte: 1
+      bit: 1
+      description: "Isolation valve closed feedback"
+      
+    cooler_running:
+      db: 3
+      byte: 1
+      bit: 0
+      description: "GM cooler running status"
+      
+    emergency_stop:
+      db: 10
+      byte: 1
+      bit: 0
+      description: "Emergency stop button"
+      
+    interlock_active:
+      db: 10
+      byte: 1
+      bit: 1
+      description: "Any interlock active"
+  
+  # Analog Inputs (Sensors)
+  analog_inputs:
+    temp_stage1:
+      db: 2
+      start: 0
+      size: 4
+      type: "REAL"
+      description: "First stage temperature (K)"
+      
+    temp_stage2:
+      db: 2
+      start: 4
+      size: 4
+      type: "REAL"
+      description: "Second stage temperature (K)"
+      
+    temp_sample:
+      db: 2
+      start: 8
+      size: 4
+      type: "REAL"
+      description: "Sample temperature (K)"
+      
+    pressure_vacuum:
+      db: 2
+      start: 12
+      size: 4
+      type: "REAL"
+      description: "Vacuum pressure (mbar)"
+      
+    pressure_helium:
+      db: 2
+      start: 16
+      size: 4
+      type: "REAL"
+      description: "Helium pressure (mbar)"
+      
+    cooler_runtime:
+      db: 3
+      start: 4
+      size: 4
+      type: "REAL"
+      description: "Cooler runtime (hours)"
+  
+  # Status Words
+  status:
+    system_state:
+      db: 10
+      start: 4
+      size: 2
+      type: "INT"
+      description: "Overall system state"
+      
+    alarm_word:
+      db: 10
+      start: 6
+      size: 2
+      type: "INT"
+      description: "Active alarms bitmap"
+
+# Communication Settings
+communication:
+  # Polling rates (in seconds)
+  fast_poll_interval: 0.1  # For critical values
+  normal_poll_interval: 1.0  # For regular monitoring
+  slow_poll_interval: 5.0  # For status information
+  
+  # What to poll at each rate
+  fast_poll:
+    - "temp_stage1"
+    - "temp_stage2"
+    - "pressure_vacuum"
+    - "emergency_stop"
+    
+  normal_poll:
+    - "temp_sample"
+    - "pressure_helium"
+    - "cooler_running"
+    - "valve_*_feedback"
+    
+  slow_poll:
+    - "cooler_runtime"
+    - "system_state"
+    - "alarm_word"
+
+# Data Validation
+validation:
+  # Range checks for analog values
+  temperature_range: [0.0, 500.0]
+  pressure_range: [1.0e-10, 10000.0]
+  
+  # Stale data timeout (seconds)
+  stale_data_timeout: 5.0
+  
+  # Bad value handling
+  on_bad_value: "use_last_good"  # Options: "use_last_good", "use_default", "error"
+
+# Logging
+logging:
+  log_all_reads: false  # Log every read operation (verbose!)
+  log_all_writes: true  # Log every write operation
+  log_errors: true
+  log_reconnects: true

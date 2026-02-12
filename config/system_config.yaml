@@ -1,0 +1,120 @@
+# System Configuration for Tabletop 4K Cryostat
+# This file contains the main system configuration
+
+system:
+  name: "Tabletop 4K Cryostat"
+  version: "0.1.0"
+  description: "GM cooler-based 4K cryostat with PLC control"
+
+# PLC Connection Settings
+plc:
+  ip_address: "192.168.1.100"
+  rack: 0
+  slot: 1
+  connection_timeout: 5.0  # seconds
+  auto_reconnect: true
+  
+  # Data block addresses for different components
+  data_blocks:
+    valves: 1
+    sensors: 2
+    cooler: 3
+    status: 10
+
+# Temperature Sensors Configuration
+temperature_sensors:
+  stage1:
+    name: "First Stage"
+    type: "RTD"
+    plc_address: "DB2.DBD0"
+    min_temp: 0.0
+    max_temp: 400.0
+    warning_low: 10.0
+    warning_high: 350.0
+    
+  stage2:
+    name: "Second Stage"
+    type: "RTD"
+    plc_address: "DB2.DBD4"
+    min_temp: 0.0
+    max_temp: 100.0
+    warning_low: 2.0
+    warning_high: 80.0
+    
+  sample:
+    name: "Sample Temperature"
+    type: "Diode"
+    plc_address: "DB2.DBD8"
+    min_temp: 0.0
+    max_temp: 350.0
+    warning_low: 2.0
+    warning_high: 320.0
+
+# Pressure Sensors Configuration
+pressure_sensors:
+  vacuum:
+    name: "Main Vacuum"
+    type: "Ion Gauge"
+    plc_address: "DB2.DBD12"
+    min_pressure: 1.0e-8
+    max_pressure: 1.0
+    warning_high: 1.0e-3
+    
+  helium:
+    name: "Helium Supply"
+    type: "Capacitance Manometer"
+    plc_address: "DB2.DBD16"
+    min_pressure: 0.0
+    max_pressure: 2000.0
+    warning_high: 1500.0
+
+# Valve Configuration
+valves:
+  isolation:
+    name: "Isolation Valve"
+    type: "isolation"
+    plc_address: "DB1.DBX0.0"
+    normally_closed: true
+    interlock_enabled: true
+    
+  needle:
+    name: "Needle Valve"
+    type: "needle"
+    plc_address: "DB1.DBX0.1"
+    normally_closed: true
+    interlock_enabled: true
+    
+  relief:
+    name: "Relief Valve"
+    type: "relief"
+    plc_address: "DB1.DBX0.2"
+    normally_closed: false
+    interlock_enabled: true
+    
+  bypass:
+    name: "Bypass Valve"
+    type: "bypass"
+    plc_address: "DB1.DBX0.3"
+    normally_closed: true
+    interlock_enabled: true
+
+# GM Cooler Configuration
+cooler:
+  name: "GM Cooler"
+  plc_address: "DB3.DBX0.0"
+  max_runtime_hours: 10000.0
+  maintenance_warning_hours: 9000.0
+
+# Monitoring Settings
+monitoring:
+  update_interval: 1.0  # seconds
+  history_size: 1000  # number of data points
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+# Data Logging
+logging:
+  enabled: true
+  directory: "./logs"
+  filename_format: "cryostat_{date}.log"
+  rotation: "daily"
+  retention_days: 30
