@@ -1,0 +1,8 @@
+# Core dependencies for tabletop 4K cryostat control
+pyyaml>=6.0
+python-snap7>=1.3  # For Siemens PLC communication
+numpy>=1.20.0
+pandas>=1.3.0
+
+# Development dependencies (optional)
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
